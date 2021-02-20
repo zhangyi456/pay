@@ -1,0 +1,106 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <script src="./js/jquery.js"></script>
+    <script src="./js/axios.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/vue/dist/vue.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/vue-router@3.4.3/dist/vue-router.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/vuex@3.5.1/dist/vuex.min.js"></script>
+    <title>Document</title>
+    <style>
+      .define-table {
+        border-collapse: collapse;
+        /* border-spacing: 0; */
+      }
+      tr,
+      td,
+      th {
+        text-align: center;
+      }
+      td {
+        height: 80px;
+      }
+    </style>
+  </head>
+
+  <body>
+    <div id="app">
+      <my-table> </my-table>
+    </div>
+    <!-- 组件 -->
+    <template id="mytable">
+      <table border="1" align="center" class="define-table">
+        <thead align="center">
+          <tr>
+            <th>商品编号</th>
+            <th>商品名称</th>
+            <th>商品图片</th>
+            <th>商品描述</th>
+            <th>市场价</th>
+            <th>优惠价</th>
+            <th>库存数量</th>
+            <th>点击量</th>
+            <th>上架时间</th>
+          </tr>
+        </thead>
+        <tbody>
+          <tr v-for="item in getList" ::key="item.id">
+            <td>{{item.id}}</td>
+            <td>{{item.title}}</td>
+            <td><img :src="item.img_url" alt="" /></td>
+            <td>{{item.zhaiyao}}</td>
+            <td>{{item.market_price}}</td>
+            <td>{{item.sell_price}}</td>
+            <td v-if="item.stock_quantity<20" style="background-color: red">{{item.stock_quantity}}</td>
+            <td v-else-if="item.stock_quantity<100" style="background-color: orange">{{item.stock_quantity}}</td>
+            <td v-else>{{item.stock_quantity}}</td>
+            <td>{{item.click}}</td>
+            <td>{{item.add_time |dateFormat}}</td>
+          </tr>
+        </tbody>
+      </table>
+    </template>
+    <script>
+      // 时间处理
+      Vue.filter('dateFormat', function (originVal) {
+        const dt = new Date(originVal)
+
+        const y = dt.getFullYear()
+        const m = (dt.getMonth() + 1 + '').padStart(2, '0')
+        const d = (dt.getDate() + '').padStart(2, '0')
+
+        const hh = (dt.getHours() + '').padStart(2, '0')
+        const mm = (dt.getMinutes() + '').padStart(2, '0')
+        const ss = (dt.getSeconds() + '').padStart(2, '0')
+
+        return `${y}-${m}-${d} `
+      })
+      Vue.prototype.$http = axios
+      Vue.component('my-table', {
+        data() {
+          return {
+            getList: []
+          }
+        },
+        template: '#mytable',
+        async created() {
+          const { data: res } = await this.$http.get('http://www.liulongbin.top:3005/api/getgoods?pageindex=0')
+          if (res.status != 0) return alert('请求失败')
+          this.getList = res.message
+          console.log(this.getList)
+        }
+      })
+
+      const vm = new Vue({
+        el: '#app',
+        name: 'App',
+        // 本部数据
+        data: {},
+        // 方法
+        methods: {}
+      })
+    </script>
+  </body>
+</html>

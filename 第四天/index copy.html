@@ -1,0 +1,204 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <script src="./js/jquery.js"></script>
+    <script src="./js/axios.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/vue/dist/vue.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/vue-router@3.4.3/dist/vue-router.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/vuex@3.5.1/dist/vuex.min.js"></script>
+    <title>Document</title>
+    <style>
+      .main {
+        border: 1px solid #ccc;
+        padding: 10px;
+        margin: 10px;
+        display: flex;
+      }
+      .rightb {
+        margin-left: 300px;
+        padding: 10px 30px 10px;
+      }
+      .sale {
+        color: red;
+        font-size: 20px;
+        margin-right: 10px;
+      }
+      .current {
+        text-decoration: line-through;
+        font-size: 16px;
+      }
+      .buyn {
+        margin-top: 10px;
+      }
+      .bb {
+        width: 120px;
+        height: 30px;
+        font-size: 24px;
+      }
+      .car {
+        display: block;
+        color: #fff;
+        background: red;
+        width: 80px;
+        height: 40px;
+        line-height: 40px;
+        text-align: center;
+        margin-top: 8px;
+      }
+    </style>
+  </head>
+
+  <body>
+    <div id="app">
+      <goods-item></goods-item>
+    </div>
+    <script>
+      var hub = new Vue()
+      var buynow = {
+        props: ['item', 'mum'],
+        template: `
+        <div class='car' @click='handel(item.id)'>
+            立即购买
+          </div>
+      `,
+        data() {
+          return {
+            num: 0
+          }
+        },
+        methods: {
+          handel(id) {
+            this.$emit('byn', this.num)
+            window.location.href = `http://www.liulongbin.top:3005/api/buy?id=${id}&num=${this.num}`
+          }
+        },
+        mounted: function () {
+          // 监听事件
+          hub.$on('jerry-event', (val) => {
+            this.num = val
+            // console.log(this.num)
+          })
+        }
+      }
+      var buynum = {
+        props: ['item'],
+        template: `
+        <div class='buyn'>
+          购买数量： <input type="text" v-model='num' @blur='handel' class='bb' >
+          </div>
+      `,
+        data() {
+          return {
+            num: 0
+          }
+        },
+        methods: {
+          handel() {
+            this.$emit('byn', this.num)
+            hub.$emit('jerry-event', this.num)
+          }
+        },
+        mounted: function () {
+          // 监听事件
+          hub.$on('tom-event', (val) => {
+            this.num = val
+          })
+        }
+      }
+      var currentprice = {
+        props: ['item'],
+        template: `
+        <span class='current'>￥{{item.market_price}}</span>
+      `
+      }
+      var saleprice = {
+        props: ['item'],
+        template: `
+        <span class='sale'>￥{{item.sell_price}}</span>
+      `
+      }
+      var rightbox = {
+        props: ['item'],
+        template: `
+        <div class='rightb'>
+            <b>{{item.title}}</b>
+            <p>上架日期：{{item.add_time}}</p>
+            <p>库存商品：{{item.stock_quantity}}</p>
+            <div> <saleprice :item='item'></saleprice><currentprice :item='item'></currentprice> </div>
+            <buynum @byn='handle($event)'></buynum>
+            <buynow :item='item'></buynow>
+        </div>
+      `,
+        components: {
+          saleprice: saleprice,
+          currentprice: currentprice,
+          buynum: buynum,
+          buynow: buynow
+        },
+        data() {
+          return {
+            num: '0'
+          }
+        },
+        methods: {
+          handle(val) {
+            this.num = val
+            console.log(this.num)
+          }
+        }
+      }
+      var mains = {
+        props: ['getList'],
+        template: `
+        <div>
+        <div class='main' v-for='item in getList' :key='item.id'>
+          <div> <img src="item.img_url" alt=""></div>
+          <rightbox :item='item'></rightbox>
+          </div>
+          </div>
+      `,
+        components: {
+          rightbox: rightbox
+        }
+      }
+      Vue.prototype.$http = axios
+      Vue.component('goods-item', {
+        data() {
+          return {
+            getList: {}
+          }
+        },
+        template: `
+                <div>
+                <mains :getList='getList'>
+                </mains>
+                </div>
+        `,
+        components: {
+          mains: mains
+          //   'cart-list': CartList,
+          //   'cart-total': CartTotal
+        },
+        methods: {},
+        async created() {
+          const { data: res } = await this.$http.get('http://www.liulongbin.top:3005/api/getgoods?pageindex=0')
+          if (res.status != 0) return alert('获取失败')
+          this.getList = res.message
+          console.log(this.getList)
+        }
+      })
+      const vm = new Vue({
+        el: '#app',
+        name: 'App',
+        // 本部数据
+        data: {},
+        // 侦听器
+        watch: {},
+        // 方法
+        methods: {}
+      })
+    </script>
+  </body>
+</html>

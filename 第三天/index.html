@@ -1,0 +1,95 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <script src="https://cdn.jsdelivr.net/npm/vue/dist/vue.js"></script>
+    <title>Document</title>
+  </head>
+
+  <body>
+    <div id="app">
+      <div>父亲的姓名：</div>
+      <div><input type="text" name="" id="wife" placeholder="妈妈姓名" v-model="momname" /></div>
+      <div>大儿媳姓名：{{dasaonae}}</div>
+      <br />
+      <tem1 :momname="momname" @dasao-name="dasaoname($event)"></tem1><br />
+      <tem2 :momname="momname"></tem2>
+    </div>
+    <script>
+      var hub = new Vue()
+      // 组件1
+      Vue.component('tem1', {
+        props: ['momname'],
+        data() {
+          return {
+            dasaonae: ''
+          }
+        },
+        template: `
+        <div>
+          <div style="color: red">组件1（大儿子组件）</div>
+        <div>大儿子姓名：</div>
+      <div>妈妈姓名：{{momname}}</div>
+      <div><input type="text" placeholder="大嫂姓名" @blur='dasaoname($event)' v-model='dasaonae'/></div>
+      </div>
+      `,
+        methods: {
+          dasaoname(event) {
+            this.$emit('dasao-name', {
+              name: event.target.value
+            })
+            hub.$emit('jerry-event', this.dasaonae)
+          }
+        },
+        mounted: function () {
+          // 监听事件
+          hub.$on('tom-event', (val) => {
+            this.dasaonae = val
+          })
+        }
+      })
+      // 组件2
+      Vue.component('tem2', {
+        props: ['momname'],
+        data() {
+          return {
+            dasaonae: ''
+          }
+        },
+        template: `
+        <div>
+          <div style="color: red">组件2</div>
+        <div>二儿子姓名：</div>
+      <div>妈妈姓名：{{momname}}</div>
+      <div>大嫂姓名：{{dasaonae}}</div>
+      </div>`,
+        mounted: function () {
+          // 监听事件
+          hub.$on('jerry-event', (val) => {
+            this.dasaonae += val
+          })
+        }
+      })
+      // 父组件
+      const vm = new Vue({
+        el: '#app',
+        name: 'App',
+        // 本部数据
+        data: {
+          momname: '',
+          dasaonae: ''
+        },
+        // 侦听器
+        watch: {},
+        // 方法
+        methods: {
+          dasaoname(val) {
+            // console.log(val.name)
+            this.dasaonae = val.name
+          }
+        }
+      })
+    </script>
+  </body>
+</html>
